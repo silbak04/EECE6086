@@ -97,25 +97,17 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
                     const bool node_in_a1 = group_a1.find(node_b1) != group_a1.end();
                     const bool node_in_b1 = group_b1.find(node_a1) != group_b1.end();
 
-                    if (lock[node_a1] || lock[node_b1]){
-                        //printf("lock_a[%d] = %d | lock_b[%d] = %d\n", cell,lock[node_a],cell,lock[node_b]);
-                        continue;
-                    }
+                    if (lock[node_a1] || lock[node_b1]) continue;
 
                     if (cell_in_a1 == cell_in_b1)
                         printf("[error]: cannot have two of the same cells in different groups\n");
 
-                    if ((cell_in_a1 && node_in_b1) || (cell_in_b1 && node_in_a1)){
+                    if ((cell_in_a1 && node_in_b1) || (cell_in_b1 && node_in_a1))
                         reduction_cost = d_value[node_a1] + d_value[node_b1] - 2;
-                        //printf("if [%d] = [%d]\n", cell, reduction_cost);
-                    }
-                    else{
+                    else
                         reduction_cost = d_value[node_a1] + d_value[node_b1];
-                        //printf("else [%d] = [%d]\n", cell, reduction_cost);
-                    }
 
                     if (reduction_cost > max_rduct_cost){
-                        //printf("[%d]\n", cell);
                         max_rduct_cost   = reduction_cost;
                         max_node_a[cell] = node_a1;
                         max_node_b[cell] = node_b1;
@@ -135,7 +127,6 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
             // lock nodes
             lock[max_node_a[cell]] = 1;
             lock[max_node_b[cell]] = 1;
-            //printf("lock_a[%d] = %d | lock_b[%d] = %d\n", cell,lock[max_node_a[cell]],cell,lock[max_node_b[cell]]);
 
             // now we need to update
             // dvalues for group a1/b1
