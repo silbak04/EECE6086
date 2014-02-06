@@ -5,12 +5,16 @@
 #include <algorithm>
 #include <unordered_set>
 #include <vector>
+#include <ctime>
 
 //#define DEBUG
 
 using namespace std;
 
-int compute_dvalue(unordered_set<int> *connections, unordered_set<int> group_a, unordered_set<int> group_b, int num_cells)
+double start_time = 0.0;
+double end_time   = 0.0;
+
+int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, unordered_set<int> group_b, int num_cells)
 {
     unordered_set<int> group_a1;
     unordered_set<int> group_b1;
@@ -283,9 +287,13 @@ int compute_dvalue(unordered_set<int> *connections, unordered_set<int> group_a, 
         int node_b = *it;
         printf("%d ", node_b);
     }
+    printf("\n");
 
     delete [] connections;
     delete [] d_value;
+
+    end_time = clock();
+    printf("execution time = %0.3fs\n", (end_time - start_time) / CLOCKS_PER_SEC);
 }
 
 int main(int argc, char **argv)
@@ -302,10 +310,13 @@ int main(int argc, char **argv)
     unordered_set<int> group_a;
     unordered_set<int> group_b;
 
+
     //string filename;
     //printf("input filename: ");
     //cin>>filename;
     //ifstream file(filename);
+
+    start_time = clock();
 
     ifstream file(argv[1]);
     while (file.good())
@@ -343,7 +354,7 @@ int main(int argc, char **argv)
              group_b.insert(cell);
     }
 
-    compute_dvalue(connection, group_a, group_b, num_cells);
+    compute_cutset(connection, group_a, group_b, num_cells);
 
 #ifdef DEBUG
     for (int i = 1; i < num_cells+1; i++)
