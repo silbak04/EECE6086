@@ -15,29 +15,33 @@ using namespace std;
 double start_time = 0.0;
 double end_time   = 0.0;
 
-int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, unordered_set<int> group_b, int num_cells)
+int compute_cutset(unordered_set<int> *connections, set<int> group_a, set<int> group_b, int num_cells)
 {
-    unordered_set<int> group_a1;
-    unordered_set<int> group_b1;
+    set<int> group_a1;
+    set<int> group_b1;
 
     int *d_value;
     d_value = new int[num_cells+1];
+
+    int gen = 0;
 
     while (1)
     {
         group_a1 = group_a;
         group_b1 = group_b;
+        gen++;
+
+        printf("------------------------------------\n");
+        printf("          generation = %d\n", gen      );
+        printf("------------------------------------\n");
 
         // compute d values for nodes
         for (int cell = 1; cell < num_cells+1; cell++)
         {
             d_value[cell] = 0;
 
-            //for (auto it = connections[cell].begin(); it != connections[cell].end(); it++)
             for (auto &node : connections[cell])
             {
-                //int node = *it;
-
                 const bool cell_in_a = group_a.find(cell) != group_a.end();
                 const bool cell_in_b = group_b.find(cell) != group_b.end();
                 const bool node_in_a = group_a.find(node) != group_a.end();
@@ -48,6 +52,7 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
 
                 // is cell in group a and node in group b (an external connection)
                 // vice versa? if so, increment by 1, else decrement by 1.
+                //if (connections[group_a.find(cell)].find(node) != connections[group_a.find(cell)].end())
                 if ((cell_in_a && node_in_b) || (cell_in_b && node_in_a))
                     d_value[cell] += 1;
                 else
@@ -61,14 +66,14 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
 
         int *lock;
 
+        int max_rduct_cost = 0;
+        int reduction_cost = 0;
+
         gains      = new int[num_cells+1];
         max_node_a = new int[num_cells+1];
         max_node_b = new int[num_cells+1];
 
         lock       = new int[num_cells+1];
-
-        int max_rduct_cost = 0;
-        int reduction_cost = 0;
 
         int d      = INT_MIN;
         int dmax_a = INT_MIN;
@@ -79,23 +84,16 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
 
         // if we find max gain between cells, then
         // let's mark it as locked (do not swap),
-        // swap other nodes that are not locked
+        // swap other nodes that are unlocked
         // we will be using the greedy pair method
         for (int i = 1; i < (num_cells/2)+1; i++)
         {
-            //d              = INT_MIN;
             dmax_a         = INT_MIN;
             dmax_b         = INT_MIN;
             max_rduct_cost = INT_MIN;
-            //reduction_cost = INT_MIN;
-
-            bool node_in_a1 = false;
-            bool node_in_b1 = false;
 
             for (auto &node_a1 : group_a1)
             {
-                node_in_a1 = group_a1.find(i) != group_a1.end();
-
                 if (lock[node_a1]) continue;
 
                 d = d_value[node_a1];
@@ -107,8 +105,6 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
             }
             for (auto &node_b1 : group_b1)
             {
-                node_in_b1 = group_b1.find(i) != group_b1.end();
-
                 if (lock[node_b1]) continue;
 
                 d = d_value[node_b1];
@@ -118,7 +114,7 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
                     max_b  = node_b1;
                 }
             }
-            if ((node_in_a1) && (node_in_b1))
+            if (connections[max_a].find(max_b) != connections[max_a].end())
                 reduction_cost = dmax_a + dmax_b - 2;
             else
                 reduction_cost = dmax_a + dmax_b;
@@ -158,7 +154,9 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
 
                     // is cell in group a and node in group b (an external connection)
                     // vice versa? if so, increment by 1, else decrement by 1.
+                    //if (connections[group_a.find(cell)].find(node) != connections[group_a.find(cell)].end())
                     if ((cell_in_a1 && node_in_b1) || (cell_in_b1 && node_in_a1))
+                    //if (connections[cell].find(node) != connections[cell].end())
                         d_value[cell] += 1;
                     else
                         d_value[cell] -= 1;
@@ -173,6 +171,7 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
         }
         printf("--------------------------------\n");
 #endif
+
         for (int i = 1; i < (num_cells/2)+1; i++)
         {
             printf("max reduction cost[%d] (%d, %d) = %d\n", i, max_node_a[i], max_node_b[i], gains[i]);
@@ -243,6 +242,7 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
     printf("1: cutset size = %d\n", cut_size);
 
     // put sets in vector to remove duplicates
+    /*
     vector <int> a;
     vector <int> b;
 
@@ -283,7 +283,7 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
         printf("%d ", node_b);
     }
     printf("\n");
-    /*
+    */
     printf("a: ");
     for (auto &node_a : group_a1)
     {
@@ -296,7 +296,6 @@ int compute_cutset(unordered_set<int> *connections, unordered_set<int> group_a, 
         printf("%d ", node_b);
     }
     printf("\n");
-    */
 
     delete [] connections;
     delete [] d_value;
@@ -315,40 +314,23 @@ int main(int argc, char **argv)
     int num_cells = 0;
     int num_nets  = 0;
 
-    int line      = 1;
-
-    unordered_set<int> *connection;
-    unordered_set<int> group_a;
-    unordered_set<int> group_b;
-
-
-    //string filename;
-    //printf("input filename: ");
-    //cin>>filename;
-    //ifstream file(filename);
+    set<int> group_a;
+    set<int> group_b;
 
     start_time = clock();
 
-    ifstream file(argv[1]);
-    while (file.good())
+    // first two lines from file
+    // are the cell/net count
+    cin >> num_cells;
+    cin >> num_nets;
+
+    unordered_set<int> *connection;
+    connection = new unordered_set<int> [num_cells+1];
+
+    while(cin >> node_1 >> node_2)
     {
-        // first two lines from file
-        // are the cell/net count
-        if (line == 1){
-            file>>num_cells;
-            line++;
-            connection = new unordered_set<int> [num_cells+1];
-        }
-        if (line == 2){
-            file>>num_nets;
-            line++;
-        }
-        else{
-            file>>node_1;
-            file>>node_2;
-            connection[node_1].insert(node_2);
-            connection[node_2].insert(node_1);
-        }
+        connection[node_1].insert(node_2);
+        connection[node_2].insert(node_1);
     }
 
 #ifdef DEBUG
