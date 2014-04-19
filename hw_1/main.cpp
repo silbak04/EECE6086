@@ -207,7 +207,7 @@ int compute_cutset(unordered_set<int> *connections, set<int> group_a, set<int> g
                 const bool cell_in_b1 = group_b1.find(max_node_b[i]) != group_b1.end();
                 const bool node_in_b1 = group_b1.find(node)          != group_b1.end();
 
-                // is cell in 'group a' and node is not in 'group a' (an external connection)
+                // is cell in 'group b' and node is not in 'group b' (an external connection)
                 // and vice versa? if so, increment by 2, else decrement by 2.
                 if ((cell_in_b1 && !node_in_b1) || (!cell_in_b1 && node_in_b1))
                     d_value[node] += 2;
